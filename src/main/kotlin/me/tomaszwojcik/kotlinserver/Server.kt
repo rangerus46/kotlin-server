@@ -22,6 +22,7 @@ class Server(val port: Int = 8080, nThreads: Int = 1) : Runnable {
     private val executorService = Executors.newFixedThreadPool(nThreads)
 
     private val handlers = listOf(
+            HostHeaderHandler(),
             LogHandler()
     )
 
