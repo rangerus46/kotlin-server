@@ -4,6 +4,7 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
 import java.net.URI
+import java.nio.file.Paths
 
 interface Handler: (HttpReq, HttpRes) -> Boolean {
     /**
@@ -43,21 +44,27 @@ class HostHeaderHandler : Handler {
 }
 
 class StaticContentHandler(
-        val root: File,
+        val root: String,
         val index: Array<String> = arrayOf("index.html")
 ) : Handler {
     override fun invoke(req: HttpReq, res: HttpRes): Boolean {
-        val uri = URI(req.uri)
-                .normalize()
-                .resolve("/")
+        val uri = URI.create(req.uri)
+        val path = Paths.get(root, uri.path).normalize()
 
-        val file = findFile(path = uri.path)
-        if (file == null) {
-            res.status = HttpStatus.NOT_FOUND
-            res.body = null
-        } else {
+        var file: File? = null
+        if (path.startsWith(root)) {
+            file = path.toFile()
+            if (file.isDirectory && uri.path.endsWith('/')) {
+                file = findIndex(file)
+            }
+        }
+
+        if (file != null && file.isFile) {
             res.status = HttpStatus.OK
             res.body = file
+        } else {
+            res.status = HttpStatus.NOT_FOUND
+            res.body = null
         }
 
         return true
@@ -65,21 +72,9 @@ class StaticContentHandler(
 
     // --
 
-    fun findFile(path: String): File? {
-        val f = File(root, path)
-        return if (path.endsWith('/')) { // Path should point to a directory.
-            when {
-                !f.exists() -> null
-                f.isDirectory -> index
-                        .map { s -> File(f, s) }
-                        .firstOrNull { it.isFile }
-                else -> null
-            }
-        } else { // Path should point to a file.
-            when {
-                f.isFile -> f
-                else -> null
-            }
-        }
+    fun findIndex(dir: File): File? {
+            return index
+                    .map { s -> File(dir, s) }
+                    .firstOrNull { it.isFile }
     }
 }
