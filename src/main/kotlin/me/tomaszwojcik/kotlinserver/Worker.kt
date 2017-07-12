@@ -72,7 +72,7 @@ class Worker(val socket: Socket, val handlers: List<Handler>) : Runnable {
 
             req.headers.put(
                     key = line.substring(0, separatorIndex),
-                    value = line.substring(separatorIndex + 2)
+                    value = line.substring(minOf(separatorIndex + 2, line.length))
             )
         }
 
