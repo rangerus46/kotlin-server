@@ -2,6 +2,8 @@ package me.tomaszwojcik.kotlinserver
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.File
+import java.net.URI
 
 interface Handler: (HttpReq, HttpRes) -> Boolean {
     /**
@@ -37,5 +39,47 @@ class HostHeaderHandler : Handler {
         // TODO: handle non-null host
 
         return true
+    }
+}
+
+class StaticContentHandler(
+        val root: File,
+        val index: Array<String> = arrayOf("index.html")
+) : Handler {
+    override fun invoke(req: HttpReq, res: HttpRes): Boolean {
+        val uri = URI(req.uri)
+                .normalize()
+                .resolve("/")
+
+        val file = findFile(path = uri.path)
+        if (file == null) {
+            res.status = HttpStatus.NOT_FOUND
+            res.body = null
+        } else {
+            res.status = HttpStatus.OK
+            res.body = file
+        }
+
+        return true
+    }
+
+    // --
+
+    fun findFile(path: String): File? {
+        val f = File(root, path)
+        return if (path.endsWith('/')) { // Path should point to a directory.
+            when {
+                !f.exists() -> null
+                f.isDirectory -> index
+                        .map { s -> File(f, s) }
+                        .firstOrNull { it.isFile }
+                else -> null
+            }
+        } else { // Path should point to a file.
+            when {
+                f.isFile -> f
+                else -> null
+            }
+        }
     }
 }

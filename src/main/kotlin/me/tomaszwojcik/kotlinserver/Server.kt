@@ -1,6 +1,7 @@
 package me.tomaszwojcik.kotlinserver
 
 import org.slf4j.LoggerFactory
+import java.io.File
 import java.net.InetSocketAddress
 import java.net.ServerSocket
 import java.util.concurrent.Executors
@@ -23,6 +24,9 @@ class Server(val port: Int = 8080, nThreads: Int = 1) : Runnable {
 
     private val handlers = listOf(
             HostHeaderHandler(),
+            StaticContentHandler(
+                    root = File("/Users/tomasz.wojcik/Desktop/test-website") // TODO: pull from config
+            ), //
             LogHandler()
     )
 

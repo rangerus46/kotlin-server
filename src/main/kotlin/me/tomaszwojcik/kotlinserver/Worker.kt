@@ -1,5 +1,6 @@
 package me.tomaszwojcik.kotlinserver
 
+import me.tomaszwojcik.kotlinserver.utils.writeFile
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.io.File
@@ -105,7 +106,7 @@ class Worker(val socket: Socket, val handlers: List<Handler>) : Runnable {
         val body = res.body
         when (body) {
             null -> {}
-            is File -> TODO()
+            is File -> writer.writeFile(body)
             else -> writer.write(body.toString())
         }
 
