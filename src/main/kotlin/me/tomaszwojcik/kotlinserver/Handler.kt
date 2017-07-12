@@ -17,7 +17,7 @@ class LogHandler(name: String? = null) : Handler {
     private val log: Logger = LoggerFactory.getLogger(name ?: javaClass.name)
 
     override fun invoke(req: HttpReq, res: HttpRes): Boolean {
-        log.info("${req.method} ${req.uri} ${req.httpVersion} -- ${res.status}")
+        log.info("${req.method} ${req.uri} ${req.httpVersion} -- ${res.status.code}")
         return true
     }
 }
